@@ -7,7 +7,9 @@ from PyQt4 import QtCore, QtGui
 def mitFullData():
     print "running mit full"
     # Read in the MIT data
-    baseDir = '/home/dmiles/src/android/play/mit_full'
+    baseDir = sys.argv[1]
+    elevation = sys.argv[2]
+    azimuth = sys.argv[3]
     # dtype='>i2' means big-endian 16-bit integer
     # 32768 == 2**15
 
@@ -24,7 +26,7 @@ def mitFullData():
         e = int(re.search(r'(-?\d+)', elev).groups()[0])
         data[e] = {}
         for f in glob.glob(os.path.join(elev, 'L*')):
-            if not f == "%s/elev0/L0e115a.dat" % baseDir:
+            if not f == "%s/elev%s/L%se%sa.dat" % (baseDir, elevation, elevation, azimuth):
                 continue
             a = int(f[-8:-5])
             ff = fromfile(f, dtype='>i2')

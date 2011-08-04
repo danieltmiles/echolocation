@@ -14,10 +14,10 @@ import com.amateurbikenerd.directionalSound.data.MITData;
 public class TestMarshallMIT {
 	@Test
 	public void testMarshallMIT() throws Exception{
-		MITData data = new MITData("/home/dmiles/src/android/play/mit_full");
-		List<Short> actuals = data.getImpulse(0, 115);
+		MITData data = new MITData("../mit_full");
+		List<Short> actuals = data.getImpulse(10, 115);
 		//actuals.add(new Short((short)5));
-		Process p = Runtime.getRuntime().exec("python pyTests/MITData.py");
+		Process p = Runtime.getRuntime().exec("python pyTests/MITData.py ../mit_full 10 115");
 		p.waitFor();
 		BufferedReader rdr = new BufferedReader(new InputStreamReader(p.getInputStream()));
 		String ln = "";
