@@ -4,12 +4,9 @@ import sys, time, glob, os, re
 from numpy import *
 from PyQt4 import QtCore, QtGui
 
-def mitFullData():
+def mitFullData(baseDir, elevation, azimuth):
     print "running mit full"
     # Read in the MIT data
-    baseDir = sys.argv[1]
-    elevation = sys.argv[2]
-    azimuth = sys.argv[3]
     # dtype='>i2' means big-endian 16-bit integer
     # 32768 == 2**15
 
@@ -22,6 +19,7 @@ def mitFullData():
     # glob is about wildcard filenames
     elevs = glob.glob(os.path.join(baseDir, 'elev*'))
     data = {}
+    ret = []
     for elev in elevs:
         e = int(re.search(r'(-?\d+)', elev).groups()[0])
         data[e] = {}
@@ -34,6 +32,18 @@ def mitFullData():
             #d.shape = ()
             data[e][a] = d[26:180].astype(float32)
             for thing in ff:
-                print thing
+                ret.append(thing)
+                #print thing
+    return ret
 
-mitFullData()
+def main():
+    baseDir = sys.argv[1].strip("/")
+    if baseDir[-1] == "/":
+        baseDir = baseDir[:-1]
+    elevation = sys.argv[2]
+    azimuth = sys.argv[3]
+    data = mitFullData(baseDir, elevation, azimuth)
+    for d in data:
+        print d
+if __name__ == "__main__":
+    main()
