@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-public class MITData {
+public class LeftChannelMITData {
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> impulses;
-	public MITData(String mitDataDirectoryName){
+	public LeftChannelMITData(String mitDataDirectoryName){
 		impulses = new Hashtable<Integer, Hashtable<Integer, List<Short>>>();
 		//short[] answers = KFile();
 		//String mitDataDirectoryName = "/home/dmiles/src/android/play/mit_full";
@@ -32,11 +32,12 @@ public class MITData {
 			String[] datFiles = elevationFolder.list();
 			for(int j = 0; j < datFiles.length; j++){
 				String datFileName = datFiles[j];
+				if(datFileName.length() < 1 || datFileName.charAt(0) == 'R')
+					continue;
 				// Here, we're going to use a char for L or R (left or right)
 				// and gather integers for elevation and azimuth
 				int indexOfLetterE = datFileName.indexOf('e');
 				int indexOfLetterA = datFileName.indexOf('a');
-				char leftOrRight = datFileName.charAt(0);
 				int felevation = Integer.parseInt(datFileName.substring(1, indexOfLetterE));
 				assert(felevation == elevation);
 				int azimuth = Integer.parseInt(datFileName.substring(indexOfLetterE + 1, indexOfLetterA));

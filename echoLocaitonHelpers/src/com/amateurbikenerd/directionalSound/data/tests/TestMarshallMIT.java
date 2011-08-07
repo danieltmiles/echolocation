@@ -6,18 +6,21 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.amateurbikenerd.directionalSound.data.MITData;
+import com.amateurbikenerd.directionalSound.data.LeftChannelMITData;
 
 public class TestMarshallMIT {
 	@Test
 	public void testMarshallMIT() throws Exception{
-		MITData data = new MITData("../mit_full");
-		List<Short> actuals = data.getImpulse(10, 115);
+		int elevation = 10;
+		int azimuth = 115;
+		LeftChannelMITData data = new LeftChannelMITData("../mit_full");
+		List<Short> actuals = data.getImpulse(elevation, azimuth);
 		//actuals.add(new Short((short)5));
-		Process p = Runtime.getRuntime().exec("python pyTests/MITData.py ../mit_full 10 115");
+		Process p = Runtime.getRuntime().exec("python pyTests/MITData.py ../mit_full " + elevation + " " + azimuth);
 		p.waitFor();
 		BufferedReader rdr = new BufferedReader(new InputStreamReader(p.getInputStream()));
 		String ln = "";
@@ -33,8 +36,10 @@ public class TestMarshallMIT {
 		assertEquals(expecteds.size(), actuals.size());
 		int badCount = 0;
 		for(int i = 0; i < expecteds.size(); i++){
+			assertTrue(expecteds.get(i).shortValue() == actuals.get(i).shortValue());
 			if(expecteds.get(i).shortValue() != actuals.get(i).shortValue())
 				badCount++;
 		}
+		
 	}
 }
