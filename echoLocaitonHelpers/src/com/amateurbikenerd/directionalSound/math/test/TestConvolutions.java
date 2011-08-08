@@ -12,7 +12,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 
-import com.amateurbikenerd.directionalSound.data.LeftChannelMITData;
+import com.amateurbikenerd.directionalSound.data.OneChannelMITData;
 import com.amateurbikenerd.directionalSound.math.Convolutions;
 
 public class TestConvolutions {
@@ -21,7 +21,7 @@ public class TestConvolutions {
 		int elevation = 0;
 		int azimuth = 115;
 		int sampleLength = 512;
-		LeftChannelMITData kernels = new LeftChannelMITData("../mit_full");
+		OneChannelMITData kernels = new OneChannelMITData("../mit_full", 'L');
 		List<Short> listKernrel = kernels.getImpulse(elevation, azimuth);
 		short[] kernel = new short[listKernrel.size()];
 		for(int i = 0; i < listKernrel.size(); i++)
@@ -35,6 +35,7 @@ public class TestConvolutions {
 		String ln = "";
 		int expectedIdx = 0;
 		while((ln = rdr.readLine()) != null){
+			System.out.println(ln);
 			assertTrue(expectedIdx < expecteds.length);
 			try{
 				expecteds[expectedIdx] = Long.parseLong(ln);

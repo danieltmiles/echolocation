@@ -9,12 +9,12 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
-public class LeftChannelMITData {
+public class OneChannelMITData {
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> impulses;
-	public LeftChannelMITData(String mitDataDirectoryName){
+	public OneChannelMITData(String mitDataDirectoryName, char channel){
+		if(! (channel == 'R' || channel == 'L'))
+			throw new IllegalArgumentException("Channel must be 'L' or 'R'");
 		impulses = new Hashtable<Integer, Hashtable<Integer, List<Short>>>();
-		//short[] answers = KFile();
-		//String mitDataDirectoryName = "/home/dmiles/src/android/play/mit_full";
 		File mitDataDirectory = new File(mitDataDirectoryName);
 		String[] elevationFolders = mitDataDirectory.list();
 		for(int i = 0; i < elevationFolders.length; i++){
@@ -32,26 +32,43 @@ public class LeftChannelMITData {
 			String[] datFiles = elevationFolder.list();
 			for(int j = 0; j < datFiles.length; j++){
 				String datFileName = datFiles[j];
-				if(datFileName.length() < 1 || datFileName.charAt(0) == 'R')
-					continue;
-				// Here, we're going to use a char for L or R (left or right)
-				// and gather integers for elevation and azimuth
-				int indexOfLetterE = datFileName.indexOf('e');
-				int indexOfLetterA = datFileName.indexOf('a');
-				int felevation = Integer.parseInt(datFileName.substring(1, indexOfLetterE));
-				assert(felevation == elevation);
-				int azimuth = Integer.parseInt(datFileName.substring(indexOfLetterE + 1, indexOfLetterA));
-				List<Short> impulse = readImpulse(mitDataDirectoryName + "/" + elevationFolderName + "/" + datFileName);
-				Integer elevationKey = new Integer(elevation);
-				if(! impulses.containsKey(elevationKey))
-					impulses.put(elevationKey, new Hashtable<Integer, List<Short>>());
-				Integer azimuthKey = new Integer(azimuth);
-				if(! impulses.get(elevationKey).containsKey(azimuthKey))
-					impulses.get(elevationKey).put(azimuthKey, impulse);
+				if(datFileName.length() > 0 && datFileName.charAt(0) == channel){
+					// Here, we're going to use a char for L or R (left or right)
+					// and gather integers for elevation and azimuth
+					int indexOfLetterE = datFileName.indexOf('e');
+					int indexOfLetterA = datFileName.indexOf('a');
+					int felevation = Integer.parseInt(datFileName.substring(1, indexOfLetterE));
+					assert(felevation == elevation);
+					int azimuth = Integer.parseInt(datFileName.substring(indexOfLetterE + 1, indexOfLetterA));
+					List<Short> impulse = readImpulse(mitDataDirectoryName + "/" + elevationFolderName + "/" + datFileName);
+					Integer elevationKey = new Integer(elevation);
+					if(! impulses.containsKey(elevationKey))
+						impulses.put(elevationKey, new Hashtable<Integer, List<Short>>());
+					Integer azimuthKey = new Integer(azimuth);
+					if(! impulses.get(elevationKey).containsKey(azimuthKey))
+						impulses.get(elevationKey).put(azimuthKey, impulse);
+				}
 			}
 		}
 	}
+	public List<Integer> getElevations(){
+		List<Integer> l = new ArrayList<Integer>(impulses.size());
+		for(Integer i : impulses.keySet())
+			l.add(i);
+		return l;
+	}
+	public List<Integer> getAzimuths(){
+		List<Integer> l = new ArrayList<Integer>();
+		for(Integer elevation : impulses.keySet()){
+			for(Integer azimuth : impulses.get(elevation).keySet()){
+				l.add(azimuth);
+			}
+		}
+		return l;
+	}
 	public List<Short> getImpulse(int elevation, int azimuth){
+		if(azimuth == 360)
+			azimuth = 0;
 		Integer elevationKey = new Integer(elevation);
 		Integer azimuthKey = new Integer(azimuth);
 		if(! impulses.containsKey(elevationKey))
@@ -65,7 +82,7 @@ public class LeftChannelMITData {
 		int fileLength = (int) file.length();
 		if (fileLength % 2 != 0) {
 			System.err
-					.println("Error, file does not contain an even number of bytes. Invalid format");
+			.println("Error, file does not contain an even number of bytes. Invalid format");
 			System.exit(1);
 		}
 		InputStream is = null;
@@ -93,6 +110,6 @@ public class LeftChannelMITData {
 			values.add(byteBuf.getShort(bytesIdx));
 		}
 		return values;
-		
+
 	}
 }

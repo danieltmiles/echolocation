@@ -10,14 +10,14 @@ import static junit.framework.Assert.assertTrue;
 
 import org.junit.Test;
 
-import com.amateurbikenerd.directionalSound.data.LeftChannelMITData;
+import com.amateurbikenerd.directionalSound.data.OneChannelMITData;
 
 public class TestMarshallMIT {
 	@Test
 	public void testMarshallMIT() throws Exception{
 		int elevation = 10;
 		int azimuth = 115;
-		LeftChannelMITData data = new LeftChannelMITData("../mit_full");
+		OneChannelMITData data = new OneChannelMITData("../mit_full", 'L');
 		List<Short> actuals = data.getImpulse(elevation, azimuth);
 		//actuals.add(new Short((short)5));
 		Process p = Runtime.getRuntime().exec("python pyTests/MITData.py ../mit_full " + elevation + " " + azimuth);
