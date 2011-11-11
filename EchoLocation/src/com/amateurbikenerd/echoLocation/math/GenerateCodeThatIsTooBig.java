@@ -42,16 +42,13 @@ public class GenerateCodeThatIsTooBig {
 		}
 		System.out.println("import java.util.Hashtable;");
 		System.out.println("public class MITData{");
-		System.out.println("    public Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();\n");
 
-                String constructor = "    public MITData(){\n";
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
 			short[] right = ht.get(compositeKey)[0];
-                        String funcName = "f" + compositeKey;
-                        constructor += "        " + funcName + "();\n";
-			System.out.println("    private void " + funcName + "(){");
-                        System.out.print("        ht.put(\"" + compositeKey + "\", new short[][]{{");
+			String funcName = "f" + compositeKey;
+			System.out.println("    public static short[][] " + funcName + "(){");
+			System.out.print("        return new short[][]{{");
 			for(int i = 0; i < right.length; i++){
 				System.out.print(right[i]);
 				if(i != right.length - 1)
@@ -63,16 +60,13 @@ public class GenerateCodeThatIsTooBig {
 				if(i != left.length - 1)
 					System.out.print(", ");
 			}
-			System.out.println("}});");
-                        System.out.println("    }");
+			System.out.println("}};");
+			System.out.println("    }");
 		}
-                constructor += "    }";
-		System.out.println(constructor);
 		System.out.println("    public static void main(String[] args){");
-		System.out.println("        MITData data = new MITData();");
-		System.out.println("        short a = data.ht.get(\"220_10\")[0][0] ;");
+		System.out.println("        short a = MITData.f220_10()[0][0] ;");
 		System.out.println("        System.out.println(\"Hello World!\");");
-		System.out.println("        System.out.println(\"data.ht[220_10][0][0] = \" + a);");
+		System.out.println("        System.out.println(\"MITData.f220_10()[0][0] = \" + a);");
 		System.out.println("    } // close main");
 		System.out.println("} //close class");
 	}
