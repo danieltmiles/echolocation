@@ -19,11 +19,12 @@ public class GenerateCodeThatIsTooBig {
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> leftImpulses;
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> rightImpulses;
 	public static void main(String[] args)throws Exception{
+                //GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/darshan/src/echolocation/mit_full");
 		GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/dmiles/mit_full");
 		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
 		for(int azimuth : data.getAzimuths()){
 			for(int elevation : data.getElevations()){
-				String compositeKey = azimuth + ":" + elevation;
+				String compositeKey = azimuth + "_" + elevation;
 				//System.out.println(compositeKey);
 				List<Short> listLeft = data.getImpulse('L', elevation, azimuth);
 				if(listLeft == null)
@@ -40,14 +41,14 @@ public class GenerateCodeThatIsTooBig {
 			}
 		}
 		System.out.println("import java.util.Hashtable;");
-		System.out.println("public class thisIsFuckedUp{");
-		System.out.println("static Hashtable<String, short[][]> ht;");
-		System.out.println("static{");
-		System.out.println("    ht = new Hashtable<String, short[][]>();");
+		System.out.println("public class MITData{");
+
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
 			short[] right = ht.get(compositeKey)[0];
-			System.out.print("    ht.put(\"" + compositeKey + "\", new short[][]{{");
+			String funcName = "f" + compositeKey;
+			System.out.println("    public static short[][] " + funcName + "(){");
+			System.out.print("        return new short[][]{{");
 			for(int i = 0; i < right.length; i++){
 				System.out.print(right[i]);
 				if(i != right.length - 1)
@@ -59,11 +60,13 @@ public class GenerateCodeThatIsTooBig {
 				if(i != left.length - 1)
 					System.out.print(", ");
 			}
-			System.out.println("}});");
+			System.out.println("}};");
+			System.out.println("    }");
 		}
-		System.out.println("} // close static");
 		System.out.println("    public static void main(String[] args){");
+		System.out.println("        short a = MITData.f220_10()[0][0] ;");
 		System.out.println("        System.out.println(\"Hello World!\");");
+		System.out.println("        System.out.println(\"MITData.f220_10()[0][0] = \" + a);");
 		System.out.println("    } // close main");
 		System.out.println("} //close class");
 	}
