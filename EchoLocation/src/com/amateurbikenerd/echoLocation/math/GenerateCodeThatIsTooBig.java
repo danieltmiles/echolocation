@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -19,7 +19,7 @@ public class GenerateCodeThatIsTooBig {
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> leftImpulses;
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> rightImpulses;
 	public static void main(String[] args)throws Exception{
-		//GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/darshan/src/echolocation/mit_full");
+                //GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/darshan/src/echolocation/mit_full");
 		GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/dmiles/mit_full");
 		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
 		for(int azimuth : data.getAzimuths()){
@@ -40,8 +40,23 @@ public class GenerateCodeThatIsTooBig {
 				ht.put(compositeKey, toStore);
 			}
 		}
-		System.out.println("package com.amateurbikenerd.echoLocation.math;;");
+		System.out.println("import java.util.Hashtable;");
 		System.out.println("public class MITData{");
+		System.out.println("    private static List<Integer> azimuths;\n    private static List<Integer> elevations;");
+		System.out.print("    static{\n        azimuths = new ArrayList<Integer>(){{");
+		List<Integer> azimuths = new ArrayList<Integer>(new HashSet<Integer>(data.getAzimuths()));
+		Collections.sort(azimuths);
+		for(int azimuth : azimuths)
+			System.out.print("add(" + azimuth + ");");
+		System.out.println("}};");
+		System.out.print("        elevations = new ArrayList<Integer>(){{");
+		List<Integer> elevations = new ArrayList<Integer>(new HashSet<Integer>(data.getElevations()));
+		Collections.sort(elevations);
+		for(int elevation : elevations)
+			System.out.print("add(" + elevation + ");");
+		System.out.println("}};");
+		System.out.println("    }");
+		System.exit(0);
 
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
@@ -63,19 +78,10 @@ public class GenerateCodeThatIsTooBig {
 			System.out.println("}};");
 			System.out.println("    }");
 		}
-		System.out.println("    public static short[][] get(int azimuth, int elevation){");
-		System.out.println("        String mName = \"f\" + azimuth + \"_\" + elevation;");
-		System.out.println("        try {");
-		System.out.println("            java.lang.reflect.Method m = MITData.class.getMethod(mName, new Class[] {});");
-		System.out.println("            return (short[][]) m.invoke(MITData.class, new Object[] {});");
-		System.out.println("        } catch (Exception e) {return null;}");
-		System.out.println("    }");
-
 		System.out.println("    public static void main(String[] args){");
 		System.out.println("        short a = MITData.f220_10()[0][0] ;");
+		System.out.println("        System.out.println(\"Hello World!\");");
 		System.out.println("        System.out.println(\"MITData.f220_10()[0][0] = \" + a);");
-		System.out.println("        a = MITData.get(220, 10)[0][0] ;");
-		System.out.println("        System.out.println(\"MITData.get(220, 10)[0][0] = \" + a);");
 		System.out.println("    } // close main");
 		System.out.println("} //close class");
 	}

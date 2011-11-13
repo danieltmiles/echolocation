@@ -1,9 +1,10 @@
 package com.amateurbikenerd.echoLocation;
 
-import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import org.json.JSONObject;
 
 import android.app.Service;
 import android.content.Intent;
@@ -13,7 +14,8 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.IBinder;
 
-import com.amateurbikenerd.echoLocation.math.TwoChannelMITData;
+import com.amateurbikenerd.echoLocation.math.Convolutions;
+import com.amateurbikenerd.echoLocation.math.MITData;
 
 public class NoiseService extends Service {
 
@@ -23,16 +25,21 @@ public class NoiseService extends Service {
 	// useless comment
 	private int nativeSampleRate;
 	private int bufSize;
+	private int channelSize;
 	private AudioTrack track;
 	private Random random;
 	private int INTERVAL_MILLISECONDS;
-	private static int numBuffers = 20;
+	private static int numBuffers = 40;
 	private static int elevation = 0;
-	private TwoChannelMITData mitData;
+	private MITData mitData;
 	@Override public void onCreate(){
 		AssetManager assets = getAssets();
 		try {
-			mitData = new TwoChannelMITData(this.getApplicationContext());
+			JSONObject obj = new JSONObject("{\"foo\":\"bar\"}");
+			System.out.println(obj.get("foo"));
+			AssetManager assetManager = getAssets();
+			for(String thing : assetManager.list("/"))
+				System.out.println(thing);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -41,6 +48,9 @@ public class NoiseService extends Service {
 		nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
 		bufSize = AudioTrack.getMinBufferSize(nativeSampleRate,
 				AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+		if(bufSize % 2 != 0)
+			bufSize++;
+		channelSize = bufSize / 2;
 		//bufSize = nativeSampleRate / 6;
 		float[] preFFTData = new float[bufSize];
 		for(int i = 0; i < preFFTData.length; i++)
@@ -54,12 +64,9 @@ public class NoiseService extends Service {
 		random = new Random();
 		dataBuffers = new short[numBuffers][];
 		for(int i = 0; i < numBuffers; i++){
-			short[] data = new short[bufSize];
-
-			for(int j = 0; j < bufSize; j++){
-
+			short[] data = new short[channelSize];
+			for(int j = 0; j < data.length; j++)
 				data[j] = (short)random.nextInt(Short.MAX_VALUE);
-			}
 			dataBuffers[i] = data;
 		}
 		track = new AudioTrack(
@@ -87,21 +94,12 @@ public class NoiseService extends Service {
 					//System.out.println("playing. Sample rate is + " + nativeSampleRate + ", buffer is " + data.length + " shorts long, interval is " + INTERVAL_MILLISECONDS);
 					//Ok, so this is to go around every four seconds
 					int azimuth = (int)((double)((System.currentTimeMillis() % 4000) * 360) / 4000d);
-//					List<Short> leftImpulseList = mitData.getImpulse('L', elevation, azimuth);
-//					short[] leftImpulse = new short[leftImpulseList.size()];
-//					for(int i = 0; i < leftImpulseList.size(); i++)
-//						leftImpulse[i] = leftImpulseList.get(i).shortValue();
-//					List<Short> rightImpulseList = mitData.getImpulse('L', elevation, azimuth);
-//					short[] rightImpulse = new short[rightImpulseList.size()];
-//					for(int i = 0; i < rightImpulseList.size(); i++)
-//						rightImpulse[i] = rightImpulseList.get(i).shortValue();
-//					short[] originalBuffer = dataBuffers[random.nextInt(numBuffers)];
-//					short[] buffer = new short[originalBuffer.length];
-//					for(int i = 0; i < originalBuffer.length; i++)
-//						buffer[i] = originalBuffer[i];
-					
-					//System.out.println(azimuth);
-					track.write(dataBuffers[random.nextInt(numBuffers)], 0, bufSize);
+					short[] leftBuffer = dataBuffers[random.nextInt(numBuffers)];
+					short[] rightBuffer = dataBuffers[random.nextInt(numBuffers)];
+					short[][] kernels = MITData.get(azimuth, 0);
+					rightBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[0]);
+					leftBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[1]);
+					track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize);
 					track.play();
 				}
 			}

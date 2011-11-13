@@ -14,38 +14,25 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 
+import org.json.JSONObject;
+
 
 public class TwoChannelMITData implements Serializable{
 	private static final long serialVersionUID = 6665144965091920175L;
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> leftImpulses;
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> rightImpulses;
 	public static void main(String[] args)throws Exception{
-		//TwoChannelMITData data = new TwoChannelMITData("/home/dmiles/mit_full");
-		//data.serialize();
-		InputStream is = new FileInputStream("/home/dmiles/two_channel_mit_data_serialized_file");
-		TwoChannelMITData data = TwoChannelMITData.deserialize(is);
-		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
-		for(int azimuth : data.getAzimuths()){
-			for(int elevation : data.getElevations()){
-				String compositeKey = azimuth + ":" + elevation;
-				System.out.println(compositeKey);
-				List<Short> listLeft = data.getImpulse('L', elevation, azimuth);
-				short[] left = new short[listLeft.size()];
-				for(int i = 0; i < listLeft.size(); i++)
-					left[i] = listLeft.get(i).shortValue();
-				List<Short> listRight = data.getImpulse('R', elevation, azimuth);
-				short[] right = new short[listRight.size()];
-				for(int i = 0; i < listRight.size(); i++)
-					right[i] = listRight.get(i).shortValue();
-				short[][] toStore = new short[][]{right, left};
-				ht.put(compositeKey, toStore);
-			}
+		TwoChannelMITData data = new TwoChannelMITData("/home/dmiles/mit_full");
+		JSONObject obj = new JSONObject();
+		for(int elevation : data.getElevations()){
+			obj.put("elevation-" + elevation, "some value");
 		}
+		System.out.println(obj.toString());
 	}
-	public TwoChannelMITData() throws IllegalArgumentException, IllegalAccessException{
+	public TwoChannelMITData(String filesystemDirectory) throws IllegalArgumentException, IllegalAccessException{
 		leftImpulses = new Hashtable<Integer, Hashtable<Integer, List<Short>>>();
 		rightImpulses = new Hashtable<Integer, Hashtable<Integer, List<Short>>>();
-		File mitDataDirectory = new File("asdf");
+		File mitDataDirectory = new File(filesystemDirectory);
 		String[] elevationFolders = mitDataDirectory.list();
 		for(int i = 0; i < elevationFolders.length; i++){
 			String elevationFolderName = elevationFolders[i];
@@ -58,7 +45,7 @@ public class TwoChannelMITData implements Serializable{
 				elevIdx--;
 			elevIdx++;
 			int elevation = Integer.parseInt(elevationFolderName.subSequence(elevIdx, elevationFolderName.length()).toString());
-			File elevationFolder = new File("asdf" + "/" + elevationFolderName);
+			File elevationFolder = new File(filesystemDirectory + "/" + elevationFolderName);
 			String[] datFiles = elevationFolder.list();
 			for(int j = 0; j < datFiles.length; j++){
 				String datFileName = datFiles[j];
@@ -70,7 +57,7 @@ public class TwoChannelMITData implements Serializable{
 					int felevation = Integer.parseInt(datFileName.substring(1, indexOfLetterE));
 					assert(felevation == elevation);
 					int azimuth = Integer.parseInt(datFileName.substring(indexOfLetterE + 1, indexOfLetterA));
-					List<Short> impulse = readImpulse("asdf" + "/" + elevationFolderName + "/" + datFileName);
+					List<Short> impulse = readImpulse(filesystemDirectory + "/" + elevationFolderName + "/" + datFileName);
 					Integer elevationKey = new Integer(elevation);
 					Hashtable<Integer, Hashtable<Integer, List<Short>>> impulses = leftImpulses;
 					if(datFileName.toUpperCase().charAt(0) == 'R')
