@@ -21,63 +21,48 @@ public class GenerateCodeThatIsTooBig {
 	public static void main(String[] args)throws Exception{
 		//GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/darshan/src/echolocation/mit_full");
 		GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/dmiles/mit_full");
-		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
-		for(int azimuth : data.getAzimuths()){
-			for(int elevation : data.getElevations()){
-				String compositeKey = azimuth + "_" + elevation;
-				//System.out.println(compositeKey);
-				List<Short> listLeft = data.getImpulse('L', elevation, azimuth);
-				if(listLeft == null)
-					continue;
-				short[] left = new short[listLeft.size()];
-				for(int i = 0; i < listLeft.size(); i++)
-					left[i] = listLeft.get(i).shortValue();
-				List<Short> listRight = data.getImpulse('R', elevation, azimuth);
-				short[] right = new short[listRight.size()];
-				for(int i = 0; i < listRight.size(); i++)
-					right[i] = listRight.get(i).shortValue();
-				short[][] toStore = new short[][]{right, left};
-				ht.put(compositeKey, toStore);
-			}
-		}
+
 		System.out.println("package com.amateurbikenerd.echoLocation.math;;");
 		System.out.println("public class MITData{");
-
-		for(String compositeKey : ht.keySet()){
-			short[] left = ht.get(compositeKey)[1];
-			short[] right = ht.get(compositeKey)[0];
-			String funcName = "f" + compositeKey;
-			System.out.println("    public static short[][] " + funcName + "(){");
-			System.out.print("        return new short[][]{{");
-			for(int i = 0; i < right.length; i++){
-				System.out.print(right[i]);
-				if(i != right.length - 1)
-					System.out.print(", ");
+		for(int azimuth : data.getAzimuths()){
+			for(int elevation : data.getElevations()){
+				System.out.print(data.methodFor('L', elevation, azimuth));
+				System.out.print(data.methodFor('R', elevation, azimuth));
 			}
-			System.out.print("},{");
-			for(int i = 0; i < left.length; i++){
-				System.out.print(left[i]);
-				if(i != left.length - 1)
-					System.out.print(", ");
-			}
-			System.out.println("}};");
-			System.out.println("    }");
 		}
-		System.out.println("    public static short[][] get(int azimuth, int elevation){");
-		System.out.println("        String mName = \"f\" + azimuth + \"_\" + elevation;");
+
+		System.out.println("    public static short[] get(char channel, int elevation, int azimuth){");
+		System.out.println("        String mName = \"\" + channel + elevation + \"_\" + azimuth;");
 		System.out.println("        try {");
 		System.out.println("            java.lang.reflect.Method m = MITData.class.getMethod(mName, new Class[] {});");
-		System.out.println("            return (short[][]) m.invoke(MITData.class, new Object[] {});");
+		System.out.println("            return (short[]) m.invoke(MITData.class, new Object[] {});");
 		System.out.println("        } catch (Exception e) {return null;}");
 		System.out.println("    }");
 
 		System.out.println("    public static void main(String[] args){");
-		System.out.println("        short a = MITData.f220_10()[0][0] ;");
-		System.out.println("        System.out.println(\"MITData.f220_10()[0][0] = \" + a);");
-		System.out.println("        a = MITData.get(220, 10)[0][0] ;");
-		System.out.println("        System.out.println(\"MITData.get(220, 10)[0][0] = \" + a);");
+		System.out.println("        short a = MITData.R10_220()[0] ;");
+		System.out.println("        System.out.println(\"MITData.R10_220()[0] = \" + a);");
+		System.out.println("        a = MITData.get('R', 10, 220)[0];");
+		System.out.println("        System.out.println(\"MITData.get('R', 10, 220)[0] = \" + a);");
 		System.out.println("    } // close main");
 		System.out.println("} //close class");
+	}
+	private String methodFor(char channel, int elevation, int azimuth){
+		String method = "";
+		List<Short> impulse = this.getImpulse(channel, elevation, azimuth);
+		if(impulse == null)
+			return method;
+		method += "    public static short[] " + channel + elevation + '_' + azimuth + "(){\n";
+		method += "        return new short[]{";
+		for(int i = 0; i < impulse.size(); i++){
+			method += impulse.get(i).shortValue();
+			if(i != impulse.size() - 1)
+				method += (", ");
+		}
+		method += "};\n";
+		method += "    }\n";
+
+		return method;
 	}
 	public GenerateCodeThatIsTooBig(String directoryName) throws IllegalArgumentException, IllegalAccessException{
 		leftImpulses = new Hashtable<Integer, Hashtable<Integer, List<Short>>>();
@@ -151,7 +136,8 @@ public class GenerateCodeThatIsTooBig {
 		List<Integer> l = new ArrayList<Integer>();
 		for(Integer elevation : leftImpulses.keySet()){
 			for(Integer azimuth : leftImpulses.get(elevation).keySet()){
-				l.add(azimuth);
+			    if(! l.contains(azimuth))
+				       l.add(azimuth);
 			}
 		}
 		return l;
