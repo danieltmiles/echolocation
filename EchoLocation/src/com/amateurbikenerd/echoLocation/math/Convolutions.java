@@ -9,8 +9,8 @@ public class Convolutions {
 	 */
 	public static long[] convolve(short[] samples, short[] kernel) {
 		int len = kernel.length;
-		long[] result = new long[samples.length + len-1];
-		for (int n = 0; n < result.length; n++) {
+		long[] rawConvolvedData = new long[samples.length + len-1];
+		for (int n = 0; n < rawConvolvedData.length; n++) {
 			double sum = 0;
 			for (int i = 0; i<len; i++) {
 				if (i<samples.length + (len-1) - n && i >= len-n-1) {
@@ -18,8 +18,14 @@ public class Convolutions {
 				}
 			}
 			assert(sum <= Long.MAX_VALUE);
-			result[n] = (long)sum;
+			rawConvolvedData[n] = (long)sum;
 		}
+		long[] result = new long[samples.length];
+		int resultIdx = 0;
+		for(int i = kernel.length; i < (kernel.length + samples.length); i++){
+			result[resultIdx] = rawConvolvedData[i];
+			resultIdx++;
+		}	
 		return result;
 	}
 	public static short[] convolveAndScale(short[] samples, short[] kernel){
@@ -31,6 +37,8 @@ public class Convolutions {
 		return ret;
 	}
 	public static short[] zipper(short[] left, short[] right){
+		if(! (left.length == right.length))
+			throw new AssertionError("left and right are not the same length, left is " + left.length + ", right is " + right.length);
 		short[] ret = new short[left.length + right.length];
 		int leftIdx = 0;
 		int rightIdx = 0;

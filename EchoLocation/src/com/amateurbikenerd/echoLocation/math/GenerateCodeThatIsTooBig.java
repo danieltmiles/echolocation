@@ -40,23 +40,34 @@ public class GenerateCodeThatIsTooBig {
 				ht.put(compositeKey, toStore);
 			}
 		}
+		System.out.println("package com.amateurbikenerd.echoLocation.math;\n");
+		System.out.println("import java.util.Collections;");
+		System.out.println("import java.util.ArrayList;");
 		System.out.println("import java.util.Hashtable;");
 		System.out.println("public class MITData{");
-		System.out.println("    private static List<Integer> azimuths;\n    private static List<Integer> elevations;");
-		System.out.print("    static{\n        azimuths = new ArrayList<Integer>(){{");
-		List<Integer> azimuths = new ArrayList<Integer>(new HashSet<Integer>(data.getAzimuths()));
-		Collections.sort(azimuths);
-		for(int azimuth : azimuths)
-			System.out.print("add(" + azimuth + ");");
-		System.out.println("}};");
+		System.out.println("    private static Hashtable<Integer, ArrayList<Integer>> azimuths;\n    private static ArrayList<Integer> elevations;");
+		System.out.println("    static{");
 		System.out.print("        elevations = new ArrayList<Integer>(){{");
 		List<Integer> elevations = new ArrayList<Integer>(new HashSet<Integer>(data.getElevations()));
 		Collections.sort(elevations);
 		for(int elevation : elevations)
 			System.out.print("add(" + elevation + ");");
 		System.out.println("}};");
+		System.out.print("        azimuths = new Hashtable<Integer, ArrayList<Integer>>(){{");
+		for(int elevation : data.getElevations()){
+			System.out.print("put(" + elevation + ",new ArrayList<Integer>(){{");
+			List<Integer> azimuths = data.getAzimuths();
+			Collections.sort(azimuths);
+			for(int azimuth : azimuths){
+				List<Short> impulse = data.getImpulse('L', elevation, azimuth);
+				if(impulse != null){
+					System.out.print("add(" + azimuth + ");");
+				}
+			}
+			System.out.print("}});");
+		}
+		System.out.println("}};");
 		System.out.println("    }");
-		System.exit(0);
 
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
@@ -78,6 +89,27 @@ public class GenerateCodeThatIsTooBig {
 			System.out.println("}};");
 			System.out.println("    }");
 		}
+		System.out.println("    public static short[][] get(int azimuth, int elevation){");
+		System.out.println("        if(! elevations.contains(elevation)){");
+		System.out.println("            int idx = (Collections.binarySearch(elevations, elevation) + 1) * -1;");
+		System.out.println("            if(idx == elevations.size())");
+		System.out.println("                idx--;");
+		System.out.println("        	elevation = elevations.get(idx);");
+		System.out.println("        }");
+		System.out.println("        ArrayList<Integer> azimuthListForElevation = azimuths.get(elevation);");
+		System.out.println("        if (! azimuthListForElevation.contains(azimuth)){");
+		System.out.println("            int idx = (Collections.binarySearch(azimuthListForElevation, azimuth) + 1) * -1;");
+		System.out.println("            if(idx == azimuthListForElevation.size())");
+		System.out.println("                idx--;");
+		System.out.println("            azimuth = azimuthListForElevation.get(idx);");
+		System.out.println("        };");
+		System.out.println("        String mName = \"f\" + azimuth + \"_\" + elevation;");
+		System.out.println("        try {");
+		System.out.println("            java.lang.reflect.Method m = MITData.class.getMethod(mName, new Class[] {});");
+		System.out.println("            return (short[][]) m.invoke(MITData.class, new Object[] {});");
+		System.out.println("        } catch (Exception e) {return null;}");
+		System.out.println("    }");
+
 		System.out.println("    public static void main(String[] args){");
 		System.out.println("        short a = MITData.f220_10()[0][0] ;");
 		System.out.println("        System.out.println(\"Hello World!\");");

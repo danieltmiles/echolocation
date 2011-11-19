@@ -96,10 +96,16 @@ public class NoiseService extends Service {
 					int azimuth = (int)((double)((System.currentTimeMillis() % 4000) * 360) / 4000d);
 					short[] leftBuffer = dataBuffers[random.nextInt(numBuffers)];
 					short[] rightBuffer = dataBuffers[random.nextInt(numBuffers)];
+					System.out.println("right " + rightBuffer.length + ", left " + leftBuffer.length);
 					short[][] kernels = MITData.get(azimuth, 0);
+					System.out.println("right impulse size = " + kernels[0].length);
+					System.out.println("left impulse size = " + kernels[1].length);
+					if(kernels == null)
+						System.out.println("kernels was null at (az, ele) = (" + azimuth + ", " + elevation + ")");
 					rightBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[0]);
 					leftBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[1]);
 					track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize);
+					System.out.println("playing");
 					track.play();
 				}
 			}
