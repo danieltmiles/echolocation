@@ -12,16 +12,20 @@ public class Convolutions {
 		int start = len / 2;
 		//int start = len / 4;
 		long[] rawConvolvedData = new long[samples.length + len];
+		long lastVal = 0;
 		for (int n = 0; n < rawConvolvedData.length; n++) {
+			if(n % 2 == 1){
+				rawConvolvedData[n] = lastVal;
+				continue;
+			}
 			double sum = 0;
 			for (int i = start; i<len; i++) {
 				if (i<samples.length + (len-1) - n && i >= len-n-1) {
 					sum += samples[i+n-len+1]*kernel[len-i-1];
 				}
 			}
-			if(sum >= Long.MAX_VALUE)
-				throw new AssertionError("sum is greater than or equal to the maximum value of a Long");
 			rawConvolvedData[n] = (long)sum;
+			lastVal = (long)sum;
 		}
 		long[] result = new long[samples.length];
 		int resultIdx = 0;
