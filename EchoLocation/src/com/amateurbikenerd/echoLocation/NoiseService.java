@@ -106,10 +106,10 @@ public class NoiseService extends Service {
 					if(kernels == null)
 						System.out.println("kernels was null at (az, ele) = (" + azimuth + ", " + elevation + ")");
 					rightBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[0]);
-					leftBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[1]);
-					track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize);
+					leftBuffer = Convolutions.convolveAndScale(leftBuffer, kernels[1]);
+					if (track != null) track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize);
 					System.out.println("playing");
-					track.play();
+					if (track != null) track.play();
 				}
 			}
 
@@ -118,6 +118,8 @@ public class NoiseService extends Service {
 	@Override
 	public void onDestroy(){
 		timer.cancel();
+		track.stop();
+		track = null;
 	}
 	@Override
 	public IBinder onBind(Intent arg0) {
