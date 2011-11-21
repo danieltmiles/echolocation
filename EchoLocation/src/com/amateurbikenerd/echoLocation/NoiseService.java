@@ -97,7 +97,10 @@ public class NoiseService extends Service {
 					short[] leftBuffer = dataBuffers[random.nextInt(numBuffers)];
 					short[] rightBuffer = dataBuffers[random.nextInt(numBuffers)];
 					System.out.println("right " + rightBuffer.length + ", left " + leftBuffer.length);
+					long start = System.currentTimeMillis();
 					short[][] kernels = MITData.get(azimuth, 0);
+					long end = System.currentTimeMillis();
+					System.out.println("impulse selection took " + (end - start) + " milliseconds.");
 					System.out.println("right impulse size = " + kernels[0].length);
 					System.out.println("left impulse size = " + kernels[1].length);
 					if(kernels == null)
