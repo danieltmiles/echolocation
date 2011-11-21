@@ -24,7 +24,7 @@ public class GenerateCodeThatIsTooBig {
 		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
 		for(int azimuth : data.getAzimuths()){
 			for(int elevation : data.getElevations()){
-				String compositeKey = azimuth + "_" + elevation;
+				String compositeKey = azimuth + ":" + elevation;
 				//System.out.println(compositeKey);
 				List<Short> listLeft = data.getImpulse('L', elevation, azimuth);
 				if(listLeft == null)
@@ -72,9 +72,7 @@ public class GenerateCodeThatIsTooBig {
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
 			short[] right = ht.get(compositeKey)[0];
-			String funcName = "f" + compositeKey;
-			System.out.println("    public static short[][] " + funcName + "(){");
-			System.out.print("        return new short[][]{{");
+			System.out.print("    ht.put(\"" + compositeKey + "\", new short[][]{{");
 			for(int i = 0; i < right.length; i++){
 				System.out.print(right[i]);
 				if(i != right.length - 1)
@@ -86,8 +84,7 @@ public class GenerateCodeThatIsTooBig {
 				if(i != left.length - 1)
 					System.out.print(", ");
 			}
-			System.out.println("}};");
-			System.out.println("    }");
+			System.out.println("}});");
 		}
 		System.out.println("    public static short[][] get(int azimuth, int elevation){");
 		System.out.println("        if(! elevations.contains(elevation)){");
