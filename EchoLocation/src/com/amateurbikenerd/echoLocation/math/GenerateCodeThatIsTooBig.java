@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 
@@ -19,6 +19,7 @@ public class GenerateCodeThatIsTooBig {
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> leftImpulses;
 	private Hashtable<Integer, Hashtable<Integer, List<Short>>> rightImpulses;
 	public static void main(String[] args)throws Exception{
+                //GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/darshan/src/echolocation/mit_full");
 		GenerateCodeThatIsTooBig data = new GenerateCodeThatIsTooBig("/home/dmiles/mit_full");
 		Hashtable<String, short[][]> ht = new Hashtable<String, short[][]>();
 		for(int azimuth : data.getAzimuths()){
@@ -39,11 +40,35 @@ public class GenerateCodeThatIsTooBig {
 				ht.put(compositeKey, toStore);
 			}
 		}
+		System.out.println("package com.amateurbikenerd.echoLocation.math;\n");
+		System.out.println("import java.util.Collections;");
+		System.out.println("import java.util.ArrayList;");
 		System.out.println("import java.util.Hashtable;");
-		System.out.println("public class thisIsFuckedUp{");
-		System.out.println("static Hashtable<String, short[][]> ht;");
-		System.out.println("static{");
-		System.out.println("    ht = new Hashtable<String, short[][]>();");
+		System.out.println("public class MITData{");
+		System.out.println("    private static Hashtable<Integer, ArrayList<Integer>> azimuths;\n    private static ArrayList<Integer> elevations;");
+		System.out.println("    static{");
+		System.out.print("        elevations = new ArrayList<Integer>(){{");
+		List<Integer> elevations = new ArrayList<Integer>(new HashSet<Integer>(data.getElevations()));
+		Collections.sort(elevations);
+		for(int elevation : elevations)
+			System.out.print("add(" + elevation + ");");
+		System.out.println("}};");
+		System.out.print("        azimuths = new Hashtable<Integer, ArrayList<Integer>>(){{");
+		for(int elevation : data.getElevations()){
+			System.out.print("put(" + elevation + ",new ArrayList<Integer>(){{");
+			List<Integer> azimuths = data.getAzimuths();
+			Collections.sort(azimuths);
+			for(int azimuth : azimuths){
+				List<Short> impulse = data.getImpulse('L', elevation, azimuth);
+				if(impulse != null){
+					System.out.print("add(" + azimuth + ");");
+				}
+			}
+			System.out.print("}});");
+		}
+		System.out.println("}};");
+		System.out.println("    }");
+
 		for(String compositeKey : ht.keySet()){
 			short[] left = ht.get(compositeKey)[1];
 			short[] right = ht.get(compositeKey)[0];
@@ -61,9 +86,31 @@ public class GenerateCodeThatIsTooBig {
 			}
 			System.out.println("}});");
 		}
-		System.out.println("} // close static");
+		System.out.println("    public static short[][] get(int azimuth, int elevation){");
+		System.out.println("        if(! elevations.contains(elevation)){");
+		System.out.println("            int idx = (Collections.binarySearch(elevations, elevation) + 1) * -1;");
+		System.out.println("            if(idx == elevations.size())");
+		System.out.println("                idx--;");
+		System.out.println("        	elevation = elevations.get(idx);");
+		System.out.println("        }");
+		System.out.println("        ArrayList<Integer> azimuthListForElevation = azimuths.get(elevation);");
+		System.out.println("        if (! azimuthListForElevation.contains(azimuth)){");
+		System.out.println("            int idx = (Collections.binarySearch(azimuthListForElevation, azimuth) + 1) * -1;");
+		System.out.println("            if(idx == azimuthListForElevation.size())");
+		System.out.println("                idx--;");
+		System.out.println("            azimuth = azimuthListForElevation.get(idx);");
+		System.out.println("        };");
+		System.out.println("        String mName = \"f\" + azimuth + \"_\" + elevation;");
+		System.out.println("        try {");
+		System.out.println("            java.lang.reflect.Method m = MITData.class.getMethod(mName, new Class[] {});");
+		System.out.println("            return (short[][]) m.invoke(MITData.class, new Object[] {});");
+		System.out.println("        } catch (Exception e) {return null;}");
+		System.out.println("    }");
+
 		System.out.println("    public static void main(String[] args){");
+		System.out.println("        short a = MITData.f220_10()[0][0] ;");
 		System.out.println("        System.out.println(\"Hello World!\");");
+		System.out.println("        System.out.println(\"MITData.f220_10()[0][0] = \" + a);");
 		System.out.println("    } // close main");
 		System.out.println("} //close class");
 	}
