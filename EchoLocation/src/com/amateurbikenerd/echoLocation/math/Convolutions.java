@@ -36,16 +36,11 @@ public class Convolutions {
 		return result;
 	}
 	public static short[] convolveAndScale(short[] samples, short[] kernel){
-		long start = System.currentTimeMillis();
 		long[] unscaledConvolution = convolve(samples, kernel);
-		long end = System.currentTimeMillis();
-		System.out.println("convolution took " + (end - start) + " milliseconds.");
 		short[] ret = new short[unscaledConvolution.length];
 		for(int i = 0; i < unscaledConvolution.length; i++){
 			ret[i] = (short)(unscaledConvolution[i] * (1e-10 * 32768));
 		}
-		end = System.currentTimeMillis();
-		System.out.println("total convolve and scale took " + (end - start) + " milliseconds");
 		return ret;
 	}
 	public static short[] zipper(short[] left, short[] right){
