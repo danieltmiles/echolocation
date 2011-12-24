@@ -57,7 +57,7 @@ public class NoiseService extends Service {
 		timer = new Timer();
 		nativeSampleRate = AudioTrack.getNativeOutputSampleRate(AudioManager.STREAM_MUSIC);
 		bufSize = AudioTrack.getMinBufferSize(nativeSampleRate,
-				AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT);
+				AudioFormat.CHANNEL_CONFIGURATION_STEREO, AudioFormat.ENCODING_PCM_16BIT) + 1024;
 		if(bufSize % 2 != 0)
 			bufSize++;
 		channelSize = bufSize / 2;
@@ -101,9 +101,7 @@ public class NoiseService extends Service {
 
 			public void run() {
 				synchronized(this){
-					//System.out.println("playing. Sample rate is + " + nativeSampleRate + ", buffer is " + data.length + " shorts long, interval is " + INTERVAL_MILLISECONDS);
-					//Ok, so this is to go around every four seconds
-					//int azimuth = (int)((double)((System.currentTimeMillis() % 4000) * 360) / 4000d);
+					System.out.println(azimuth);
 					short[] leftBuffer = dataBuffers[random.nextInt(numBuffers)];
 					short[] rightBuffer = dataBuffers[random.nextInt(numBuffers)];
 					short[][] kernels = MITData.get(azimuth, 0);
@@ -111,7 +109,7 @@ public class NoiseService extends Service {
 						System.out.println("kernels was null at (az, ele) = (" + azimuth + ", " + elevation + ")");
 					rightBuffer = Convolutions.convolveAndScale(rightBuffer, kernels[0]);
 					leftBuffer = Convolutions.convolveAndScale(leftBuffer, kernels[1]);
-					if (track != null) track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize);
+					if (track != null) track.write(Convolutions.zipper(leftBuffer, rightBuffer), 0, bufSize - 1024);
 					if (track != null) track.play();
 				}
 			}

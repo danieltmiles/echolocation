@@ -27,9 +27,9 @@ public class Convolutions {
 			rawConvolvedData[n] = (long)sum;
 			lastVal = (long)sum;
 		}
-		long[] result = new long[samples.length];
+		long[] result = new long[samples.length - 512];
 		int resultIdx = 0;
-		for(int i = len; i < (len + samples.length); i++){
+		for(int i = len; i < (len + samples.length) - 512; i++){
 			result[resultIdx] = rawConvolvedData[i];
 			resultIdx++;
 		}	
